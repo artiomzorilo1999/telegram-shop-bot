@@ -615,7 +615,9 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     init_db()
 
-    threading.Thread(target=run_web).start()
+    web_thread = threading.Thread(target=run_web)
+    web_thread.daemon = True
+    web_thread.start()
 
     app = Application.builder().token(TOKEN).build()
 
@@ -676,6 +678,10 @@ def main():
     app.add_handler(MessageHandler(filters.Regex("^⬅️ Назад$"), back_to_menu))
 
     print("Бот запущен...")
+
+    import asyncio
+
+    asyncio.set_event_loop(asyncio.new_event_loop())
 
     app.run_polling()
 
