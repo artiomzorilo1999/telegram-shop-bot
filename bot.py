@@ -14,7 +14,7 @@ from telegram.ext import (
     filters,
 )
 
-TOKEN = os.getenv("8683806147:AAFzYZXN9VqtJtcHsRvGts0dwhvmyzFug3c")
+TOKEN = os.getenv("TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID"))
 
 DB = "shop.db"
