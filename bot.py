@@ -122,7 +122,7 @@ async def catalog(update: Update, context: ContextTypes.DEFAULT_TYPE):
         text = (
             f"📦 {name}\n\n"
             f"📝 {desc}\n"
-            f"💰 Цена: {price} ₽\n"
+            f"💰 Цена: {price} Евро\n"
             f"📊 Остаток: {stock} шт."
         )
 
