@@ -3,9 +3,6 @@ import sqlite3
 import threading
 import os
 
-TOKEN = os.getenv("TOKEN") or "8683806147:AAEP4CrAnr0uiYSwgaGYdhme1RzUAJkWNuw"
-ADMIN_ID = int(os.getenv("ADMIN_ID") or 495780952)
-
 
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import (
@@ -17,10 +14,13 @@ from telegram.ext import (
     filters,
 )
 
-TOKEN = os.getenv("TOKEN")
-ADMIN_ID = int(os.getenv("ADMIN_ID"))
+TOKEN = os.getenv("TOKEN") or "8683806147:AAEP4CrAnr0uiYSwgaGYdhme1RzUAJkWNuw"
+ADMIN_ID = int(os.getenv("ADMIN_ID") or 495780952)
 
 DB = "shop.db"
+
+def db():
+    return sqlite3.connect(DB)
 
 ASK_QTY, ASK_NAME, ASK_PHONE, ASK_ADDRESS, ASK_COMMENT = range(5)
 
@@ -63,13 +63,13 @@ def init_db():
     cur.execute("SELECT COUNT(*) FROM products")
     if cur.fetchone()[0] == 0:
         cur.executemany("""
-            INSERT INTO products (name, description, price, stock, photo_url)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO products (name, description, price, stock)
+            VALUES (?, ?, ?, ?)
         """, [
             [
-              ("🚬 Marlboro Gold", "Оригинал", 12, 50),
-              ("🚬 Winston Blue", "С кнопкой", 10, 40),
-              ("🚬 Parliament Aqua", "Тонкие", 14, 25),
+              ("🚬 Marlboro Gold", "Оригинал", 70, 20),
+              ("🚬 Winston Blue", "С кнопкой", 70, 20),
+              ("🚬 Parliament Aqua", "Тонкие", 75, 25),
 ],
         ])
 
