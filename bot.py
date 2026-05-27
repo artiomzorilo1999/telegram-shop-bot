@@ -68,8 +68,9 @@ def init_db():
         """, [
             [
               ("🚬 Marlboro Gold", "Оригинал", 70, 20),
-              ("🚬 Winston Blue", " С_капсулой ", 70, 20),
+              ("🚬 Winston Blue", " С_капсулой ", 70, 27),
               ("🚬 Parliament Aqua", "Тонкие", 75, 25),
+              ("🚬 Parliament Aqua", "Толстые", 75, 22),
 ],
         ])
 
