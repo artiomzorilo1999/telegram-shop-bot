@@ -24,21 +24,11 @@ DB = "shop.db"
 
 ASK_QTY, ASK_NAME, ASK_PHONE, ASK_ADDRESS, ASK_COMMENT = range(5)
 
-app_web = Flask(__name__)
 
 
-@app_web.route("/")
-def home():
-    return "Bot is running!"
 
 
-def run_web():
-    app_web.run(host="0.0.0.0", port=10000)
-
-
-def db():
-    return sqlite3.connect(DB)
-
+  
 
 def init_db():
     con = db()
