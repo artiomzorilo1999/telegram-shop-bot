@@ -1,4 +1,9 @@
+import os
 import sqlite3
+import threading
+
+from flask import Flask
+
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import (
     Application,
@@ -9,12 +14,23 @@ from telegram.ext import (
     filters,
 )
 
-TOKEN = "8683806147:AAFzYZXN9VqtJtcHsRvGts0dwhvmyzFug3c"
-ADMIN_ID = 495780952  # Вставь свой Telegram ID
+TOKEN = os.getenv("8683806147:AAFzYZXN9VqtJtcHsRvGts0dwhvmyzFug3c")
+ADMIN_ID = int(os.getenv("495780952"))
 
 DB = "shop.db"
 
 ASK_QTY, ASK_NAME, ASK_PHONE, ASK_ADDRESS, ASK_COMMENT = range(5)
+
+app_web = Flask(__name__)
+
+
+@app_web.route("/")
+def home():
+    return "Bot is running!"
+
+
+def run_web():
+    app_web.run(host="0.0.0.0", port=10000)
 
 
 def db():
@@ -152,7 +168,9 @@ async def add_product(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data["selected_product"] = product_id
 
     await update.message.reply_text(
-        f"Сколько штук добавить?\n\n📦 {product[1]}\n📊 В наличии: {product[2]} шт.",
+        f"Сколько штук добавить?\n\n"
+        f"📦 {product[1]}\n"
+        f"📊 В наличии: {product[2]} шт.",
         reply_markup=back_menu(),
     )
 
@@ -198,7 +216,9 @@ async def ask_qty(update: Update, context: ContextTypes.DEFAULT_TYPE):
     cart[product_id] = cart.get(product_id, 0) + qty
 
     await update.message.reply_text(
-        f"✅ Добавлено в корзину:\n\n📦 {name}\n🔢 {qty} шт.",
+        f"✅ Добавлено в корзину:\n\n"
+        f"📦 {name}\n"
+        f"🔢 Количество: {qty} шт.",
         reply_markup=menu(),
     )
 
@@ -226,7 +246,12 @@ async def show_cart(update: Update, context: ContextTypes.DEFAULT_TYPE):
             name, price = product
             subtotal = price * qty
             total += subtotal
-            text += f"📦 {name}\n🔢 {qty} шт.\n💵 {subtotal} ₽\n\n"
+
+            text += (
+                f"📦 {name}\n"
+                f"🔢 Количество: {qty} шт.\n"
+                f"💵 Сумма: {subtotal} ₽\n\n"
+            )
 
     con.close()
 
@@ -256,7 +281,10 @@ async def get_name(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     context.user_data["customer_name"] = update.message.text
 
-    phone_button = KeyboardButton("📞 Отправить номер телефона", request_contact=True)
+    phone_button = KeyboardButton(
+        "📞 Отправить номер телефона",
+        request_contact=True,
+    )
 
     await update.message.reply_text(
         "📞 Отправь номер телефона:",
@@ -285,11 +313,19 @@ async def get_phone(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def get_address(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.text == "⬅️ Назад":
-        phone_button = KeyboardButton("📞 Отправить номер телефона", request_contact=True)
+        phone_button = KeyboardButton(
+            "📞 Отправить номер телефона",
+            request_contact=True,
+        )
+
         await update.message.reply_text(
             "📞 Отправь номер телефона:",
-            reply_markup=ReplyKeyboardMarkup([[phone_button], ["⬅️ Назад"]], resize_keyboard=True),
+            reply_markup=ReplyKeyboardMarkup(
+                [[phone_button], ["⬅️ Назад"]],
+                resize_keyboard=True,
+            ),
         )
+
         return ASK_PHONE
 
     context.user_data["customer_address"] = update.message.text
@@ -311,8 +347,6 @@ async def get_comment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if comment == "-":
         comment = "Без комментария"
 
-    context.user_data["customer_comment"] = comment
-
     cart = context.user_data.get("cart", {})
     customer_name = context.user_data["customer_name"]
     phone = context.user_data["customer_phone"]
@@ -328,7 +362,10 @@ async def get_comment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     items_text = ""
 
     for product_id, qty in cart.items():
-        cur.execute("SELECT name, description, price, stock FROM products WHERE id = ?", (product_id,))
+        cur.execute(
+            "SELECT name, description, price, stock FROM products WHERE id = ?",
+            (product_id,),
+        )
         product = cur.fetchone()
 
         if not product:
@@ -338,7 +375,8 @@ async def get_comment(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         if qty > stock:
             await update.message.reply_text(
-                f"❌ Недостаточно товара: {name}\nВ наличии: {stock} шт.",
+                f"❌ Недостаточно товара: {name}\n"
+                f"В наличии: {stock} шт.",
                 reply_markup=menu(),
             )
             con.close()
@@ -354,7 +392,10 @@ async def get_comment(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"💵 Сумма: {subtotal} ₽\n\n"
         )
 
-        cur.execute("UPDATE products SET stock = stock - ? WHERE id = ?", (qty, product_id))
+        cur.execute(
+            "UPDATE products SET stock = stock - ? WHERE id = ?",
+            (qty, product_id),
+        )
 
     cur.execute("""
         INSERT INTO orders 
@@ -391,7 +432,8 @@ async def get_comment(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f"📞 Телефон: {phone}\n"
         f"📍 Адрес: {address}\n"
         f"💬 Комментарий: {comment}\n\n"
-        f"📦 Товары:\n\n{items_text}"
+        f"📦 Товары:\n\n"
+        f"{items_text}"
         f"💰 Итого: {total} ₽"
     )
 
@@ -446,7 +488,8 @@ async def add_admin_product(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if len(parts) < 4:
         await update.message.reply_text(
             "Формат:\n"
-            "/add Название | Описание | Цена | Количество | Фото_URL"
+            "/add Название | Описание | Цена | Количество | Фото_URL\n\n"
+            "Фото_URL можно не указывать."
         )
         return
 
@@ -462,10 +505,12 @@ async def add_admin_product(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     con = db()
     cur = con.cursor()
+
     cur.execute("""
         INSERT INTO products (name, description, price, stock, photo_url)
         VALUES (?, ?, ?, ?, ?)
     """, (name, desc, price, stock, photo))
+
     con.commit()
     con.close()
 
@@ -487,7 +532,8 @@ async def stock(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Товаров нет.")
         return
 
-    text = "📊 Остатки:\n\n"
+    text = "📊 Остатки товаров:\n\n"
+
     for product_id, name, stock_count, price in products:
         text += f"{product_id}. {name} — {stock_count} шт. — {price} ₽\n"
 
@@ -501,12 +547,14 @@ async def orders(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     con = db()
     cur = con.cursor()
+
     cur.execute("""
         SELECT id, name, phone, address, total, status
         FROM orders
         ORDER BY id DESC
         LIMIT 10
     """)
+
     rows = cur.fetchall()
     con.close()
 
@@ -549,7 +597,9 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     con.commit()
     con.close()
 
-    await update.message.reply_text(f"✅ Статус заказа #{order_id} изменён на: {new_status}")
+    await update.message.reply_text(
+        f"✅ Статус заказа #{order_id} изменён на: {new_status}"
+    )
 
 
 async def back_to_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -565,6 +615,8 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     init_db()
 
+    threading.Thread(target=run_web).start()
+
     app = Application.builder().token(TOKEN).build()
 
     add_to_cart = ConversationHandler(
@@ -576,7 +628,9 @@ def main():
                 MessageHandler(filters.TEXT & ~filters.COMMAND, ask_qty),
             ],
         },
-        fallbacks=[CommandHandler("cancel", cancel)],
+        fallbacks=[
+            CommandHandler("cancel", cancel),
+        ],
     )
 
     checkout_handler = ConversationHandler(
@@ -588,7 +642,10 @@ def main():
                 MessageHandler(filters.TEXT & ~filters.COMMAND, get_name),
             ],
             ASK_PHONE: [
-                MessageHandler((filters.TEXT | filters.CONTACT) & ~filters.COMMAND, get_phone),
+                MessageHandler(
+                    (filters.TEXT | filters.CONTACT) & ~filters.COMMAND,
+                    get_phone,
+                ),
             ],
             ASK_ADDRESS: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, get_address),
@@ -597,7 +654,9 @@ def main():
                 MessageHandler(filters.TEXT & ~filters.COMMAND, get_comment),
             ],
         },
-        fallbacks=[CommandHandler("cancel", cancel)],
+        fallbacks=[
+            CommandHandler("cancel", cancel),
+        ],
     )
 
     app.add_handler(CommandHandler("start", start))
@@ -615,6 +674,8 @@ def main():
     app.add_handler(MessageHandler(filters.Regex("^🗑 Очистить корзину$"), clear_cart))
     app.add_handler(MessageHandler(filters.Regex("^ℹ️ Помощь$"), help_text))
     app.add_handler(MessageHandler(filters.Regex("^⬅️ Назад$"), back_to_menu))
+
+    print("Бот запущен...")
 
     app.run_polling()
 
