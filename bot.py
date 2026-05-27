@@ -1,8 +1,11 @@
 import os
 import sqlite3
 import threading
+import os
 
-from flask import Flask
+TOKEN = os.getenv("TOKEN") or "8683806147:AAEP4CrAnr0uiYSwgaGYdhme1RzUAJkWNuw"
+ADMIN_ID = int(os.getenv("ADMIN_ID") or 495780952)
+
 
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import (
@@ -73,9 +76,11 @@ def init_db():
             INSERT INTO products (name, description, price, stock, photo_url)
             VALUES (?, ?, ?, ?, ?)
         """, [
-            ("🍫 Шоколад", "Молочный шоколад 100 г", 50, 20, ""),
-            ("☕ Кофе", "Молотый кофе 250 г", 120, 15, ""),
-            ("🍪 Печенье", "Печенье с шоколадом 200 г", 80, 10, ""),
+            [
+              ("🚬 Marlboro Gold", "Оригинал", 12, 50),
+              ("🚬 Winston Blue", "С кнопкой", 10, 40),
+              ("🚬 Parliament Aqua", "Тонкие", 14, 25),
+],
         ])
 
     con.commit()
