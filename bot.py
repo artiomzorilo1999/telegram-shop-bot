@@ -66,13 +66,13 @@ def init_db():
             INSERT INTO products (name, description, price, stock)
             VALUES (?, ?, ?, ?)
         """, [
-            [
+            
               ("🚬 Marlboro Gold", "Оригинал", 70, 20),
               ("🚬 Winston Blue", " С_капсулой ", 70, 27),
               ("🚬 Parliament Aqua", "Тонкие", 75, 25),
               ("🚬 Parliament Aqua", "Толстые", 75, 22),
-],
-        ])
+            
+])
 
     con.commit()
     con.close()
